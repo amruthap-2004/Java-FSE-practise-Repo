@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Country Lookup Service</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .countries-list {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .country-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .country-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 Country Lookup Service</h1>
+        
+        <div class="search-box">
+            <input type="text" id="countryCode" placeholder="Enter 2-letter country code (e.g., US, IN, DE, JP)" maxlength="2">
+            <button onclick="lookupCountry()">Search</button>
+        </div>
+        
+        <div id="result" class="result"></div>
+        
+        <div class="countries-list">
+            <h3>Available Countries:</h3>
+            <div id="countriesList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Load available countries on page load
+        window.onload = function() {
+            loadCountries();
+        };
+
+        function lookupCountry() {
+            const code = document.getElementById('countryCode').value.toUpperCase();
+            const resultDiv = document.getElementById('result');
+            
+            if (!code) {
+                showResult('Please enter a country code', 'error');
+                return;
+            }
+            
+            fetch(`/api/country/${code}`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Country not found');
+                    }
+                })
+                .then(country => {
+                    showResult(`✅ Found: ${country.name} (${country.code})`, 'success');
+                })
+                .catch(error => {
+                    showResult(`❌ Country not found for code: ${code}`, 'error');
+                });
+        }
+
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = `result ${type}`;
+            resultDiv.style.display = 'block';
+        }
+
+        function loadCountries() {
+            fetch('/api/countries')
+                .then(response => response.json())
+                .then(countries => {
+                    const countriesList = document.getElementById('countriesList');
+                    countriesList.innerHTML = '';
+                    
+                    Object.values(countries).forEach(country => {
+                        const div = document.createElement('div');
+                        div.className = 'country-item';
+                        div.innerHTML = `
+                            <span><strong>${country.code}</strong></span>
+                            <span>${country.name}</span>
+                        `;
+                        countriesList.appendChild(div);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading countries:', error);
+                });
+        }
+
+        // Allow Enter key to trigger search
+        document.getElementById('countryCode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                lookupCountry();
+            }
+        });
+    </script>
+</body>
+</html> 
