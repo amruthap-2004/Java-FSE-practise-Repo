@@ -1,0 +1,6 @@
+com\example\library\controller\BookController.class
+com\example\library\model\Book.class
+com\example\library\aop\LoggingAspect.class
+com\example\library\service\BookService.class
+com\example\library\AppConfig.class
+com\example\library\App.class
